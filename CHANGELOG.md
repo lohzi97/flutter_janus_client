@@ -1,3 +1,5 @@
+## 2.3.12
+- upgrade flutter_webrtc to version: 1.0.0
 ## 2.3.11
 - feature: media constraints changes
 ## 2.3.10
