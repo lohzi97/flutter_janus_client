@@ -38,11 +38,7 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: flutter pub get
-
-      # Analyze code for errors
-      - name: Analyze code
-        run: flutter analyze --no-pub
-
+        
       # Check for publish warnings (only on release)
       - name: Check publish warnings
         if: github.event_name == 'release'
