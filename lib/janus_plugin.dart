@@ -385,10 +385,43 @@ class JanusPlugin {
     await _disposeMediaStreams();
   }
 
-  /// Disposes timers, stream controllers, transports, and media tied to this plugin.
+  Future<void> detach() async {
+    String transaction = getUuid().v4();
+    Map<String, dynamic> request = {
+      "janus": "detach",
+      "transaction": transaction,
+      ..._context._apiMap,
+      ..._context._tokenMap
+     };
+     request["session_id"] = _session!.sessionId;
+     request["handle_id"] = handleId;
+     if (_transport is RestJanusTransport) {
+       RestJanusTransport rest = (_transport as RestJanusTransport);
+       await rest.post(request, handleId: handleId);
+     } else if (_transport is WebSocketJanusTransport) {
+       WebSocketJanusTransport ws = (_transport as WebSocketJanusTransport);
+       if (ws.isConnected) {
+         await ws.send(request, handleId: handleId);
+       }
+     }
+     // This is the crucial missing piece:
+     _session?._pluginHandles.remove(handleId);
+     // Now, call the existing dispose to clean up streams etc.
+     await dispose();
+   }
+
+  /// This function takes care of cleaning up all the internal stream controller and timers used to make janus_client compatible with streams and polling support
+  ///
   Future<void> dispose() async {
     this.pollingActive = false;
     _pollingTimer?.cancel();
+    _wsStreamSubscription?.cancel();
+    if (webRTCHandle?.peerConnection != null) {
+      webRTCHandle?.peerConnection?.onRenegotiationNeeded = null;
+      webRTCHandle?.peerConnection?.onIceCandidate = null;
+      webRTCHandle?.peerConnection?.onTrack = null;
+      webRTCHandle?.peerConnection?.onAddStream = null;
+    }
     _streamController?.close();
     _remoteStreamController?.close();
     _messagesStreamController?.close();
@@ -398,7 +431,6 @@ class JanusPlugin {
     _dataStreamController?.close();
     _onDataStreamController?.close();
     _renegotiationNeededController?.close();
-    _wsStreamSubscription?.cancel();
     await stopAllTracks(webRTCHandle?.localStream);
     (await webRTCHandle?.peerConnection?.getTransceivers())?.forEach((element) async {
       await element.stop();
