@@ -381,10 +381,7 @@ class JanusPlugin {
          await ws.send(request, handleId: handleId);
        }
      }
-     // This is the crucial missing piece:
      _session?._pluginHandles.remove(handleId);
-     // Now, call the existing dispose to clean up streams etc.
-     await dispose();
    }
 
   /// This function takes care of cleaning up all the internal stream controller and timers used to make janus_client compatible with streams and polling support
