@@ -152,14 +152,14 @@ class JanusClient {
 
   Map get _apiMap => _withCredentials
       ? _apiSecret != null
-            ? {"apisecret": _apiSecret}
-            : {}
+          ? {"apisecret": _apiSecret}
+          : {}
       : {};
 
   Map get _tokenMap => _withCredentials
       ? _token != null
-            ? {"token": _token}
-            : {}
+          ? {"token": _token}
+          : {}
       : {};
 
   /// JanusClient
