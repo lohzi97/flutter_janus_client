@@ -59,7 +59,7 @@ class JanusVideoCallPlugin extends JanusPlugin {
       "filename": filename,
       "substream": substream,
       "temporal": temporal,
-      "fallback": fallback
+      "fallback": fallback,
     }..removeWhere((key, value) => value == null);
     await this.send(data: payload, jsep: jsep);
   }
@@ -170,8 +170,10 @@ class JanusVideoCallPlugin extends JanusPlugin {
           data['result']['event'] == 'hangup') {
         typedEvent.event.plugindata?.data = VideoCallHangupEvent.fromJson(data);
         _typedMessagesSink?.add(typedEvent);
-      } else if (data['videocall'] == 'event' &&
-          (data['error_code'] != null || data['result']?['code'] != null)) {
+      } else if (data['videocall'] == 'event' && data['result'] != null && data['result'].containsKey('list')) {
+        typedEvent.event.plugindata?.data = VideoCallRegisteredListEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
+      } else if (data['videocall'] == 'event' && (data['error_code'] != null || data['result']?['code'] != null)) {
         _typedMessagesSink?.addError(JanusError.fromMap(data));
       }
     });

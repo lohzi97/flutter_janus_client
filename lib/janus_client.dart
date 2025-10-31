@@ -74,6 +74,8 @@ part './interfaces/video_call/events/video_call_incoming_call_event.dart';
 
 part './interfaces/video_call/events/video_call_registered_event.dart';
 
+part './interfaces/video_call/events/video_call_registered_list_event.dart';
+
 part './interfaces/streaming/create_media_item.dart';
 
 part './interfaces/streaming/streaming_mount.dart';
@@ -150,14 +152,14 @@ class JanusClient {
 
   Map get _apiMap => _withCredentials
       ? _apiSecret != null
-          ? {"apisecret": _apiSecret}
-          : {}
+            ? {"apisecret": _apiSecret}
+            : {}
       : {};
 
   Map get _tokenMap => _withCredentials
       ? _token != null
-          ? {"token": _token}
-          : {}
+            ? {"token": _token}
+            : {}
       : {};
 
   /// JanusClient
