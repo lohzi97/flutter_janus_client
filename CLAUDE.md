@@ -61,27 +61,27 @@ The library uses a wrapper plugin pattern with typed events for better IDE suppo
 
 ### Building and Testing
 ```bash
-# Run tests
-flutter test
+# Run tests (using fvm)
+fvm flutter test
 
-# Analyze code
-flutter analyze
+# Analyze code (using fvm)
+fvm flutter analyze
 
 # Generate documentation
-dartdoc
+fvm dartdoc
 
-# Build example app
-cd example && flutter build apk
-cd example && flutter build ios
+# Build example app (using fvm)
+cd example && fvm flutter build apk
+cd example && fvm flutter build ios
 ```
 
 ### Dependencies Management
 ```bash
-# Get dependencies
-flutter pub get
+# Get dependencies (using fvm)
+fvm flutter pub get
 
-# Upgrade dependencies
-flutter pub upgrade
+# Upgrade dependencies (using fvm)
+fvm flutter pub upgrade
 ```
 
 ## Key Dependencies
@@ -132,5 +132,5 @@ Test files should be organized under `test/` directory. The library includes com
 ## Version Requirements
 
 - **Dart SDK**: >=3.6.0 <4.0.0
-- **Flutter**: >=3.24.0
-- Package follows semantic versioning with current version 2.3.13
+- **Flutter**: >=3.24.0 (currently using 3.32.8 via fvm)
+- Package follows semantic versioning with current version 2.4.0
