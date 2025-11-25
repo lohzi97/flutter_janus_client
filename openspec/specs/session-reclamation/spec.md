@@ -1,7 +1,8 @@
-# Session Reclamation Capability Specification
+# session-reclamation Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change reclaim-session. Update Purpose after archive.
+## Requirements
 ### Requirement: Session Reclamation Support
 The package SHALL support reclaiming existing Janus sessions using stored session IDs to enable recovery from network interruptions.
 
@@ -104,13 +105,10 @@ The package SHALL provide clear documentation and examples for session reclamati
 **And** SHALL show proper error handling
 **And** SHALL include best practices for session ID management
 
-## MODIFIED Requirements
-
 ### Requirement: JanusSession.create() Method Signature
-The `JanusSession.create()` method signature SHALL be modified to support optional session ID parameter.
+The `JanusSession.create()` method signature SHALL support optional session ID parameter.
 
-**Current Signature**: `Future<void> create()`
-**New Signature**: `Future<void> create({int? sessionId})`
+**Signature**: `Future<void> create({int? sessionId})`
 
 #### Scenario: Method Signature Compatibility
 **Given** existing code calls `session.create()`
@@ -118,6 +116,3 @@ The `JanusSession.create()` method signature SHALL be modified to support option
 **Then** it SHALL compile without changes
 **And** SHALL maintain the same behavior
 
-## REMOVED Requirements
-
-No requirements are removed as this is a purely additive change that maintains backward compatibility.

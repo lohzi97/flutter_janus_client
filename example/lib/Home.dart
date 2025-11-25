@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'session_reclamation_example.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -64,6 +65,16 @@ class _HomeState extends State<Home> {
                     ),
                     onTap: () {
                       Navigator.of(context).pushNamed("/typed_sip");
+                    },
+                  ),
+                  ListTile(
+                    title: Text.rich(
+                      TextSpan(children: [TextSpan(text: "Session Reclamation"), TextSpan(text: "  New", style: TextStyle(color: Colors.green))]),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => SessionReclamationExample(),
+                      ));
                     },
                   ),
                 ],

@@ -10,6 +10,7 @@ environment:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  test: ^1.24.3
   dartdoc: ^8.1.0 # Downgraded to avoid Dart 3.6.0+ requirement
 
 dependencies:

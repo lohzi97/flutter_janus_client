@@ -12,3 +12,6 @@ flutter_janus_client.iml
 example/build/ios
 example/build/flutter_assets
 example/.flutter-plugins-dependencies
+
+# FVM Version Cache
+.fvm/

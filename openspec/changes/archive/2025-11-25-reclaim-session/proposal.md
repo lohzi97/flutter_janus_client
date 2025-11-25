@@ -1,14 +1,24 @@
-# Session Reclamation Support
+# Change: Add Session Reclamation Support
 
-## Problem Statement
+## Why
 
 The Flutter Janus client currently lacks support for session reclamation functionality provided by the Janus WebRTC Server. When network connections are interrupted (common in mobile VoIP applications), users lose their active sessions and must restart entire communication flows, creating poor user experience.
 
-Current limitations:
-- No way to reclaim existing Janus sessions after connection loss
-- Applications must recreate sessions and re-attach all plugin handles after disconnection
-- No built-in support for handling network interruptions gracefully
-- VoIP calls are permanently dropped on temporary connection issues
+## What Changes
+
+- Add optional `sessionId` parameter to `JanusSession.create()` method
+- Implement session claim request logic for existing session reclamation
+- Add automatic keep-alive timer restart after successful reclamation
+- Create `SessionReclaimException` for proper error handling
+- Update both WebSocket and REST transport protocols to support claim requests
+- Add comprehensive documentation and usage examples
+- Create integration tests for session reclamation scenarios
+
+## Impact
+
+- Affected specs: session-reclamation (new capability)
+- Affected code: lib/janus_session.dart, lib/janus_transport.dart, example/, test/
+- **BREAKING**: None - changes are additive and backward compatible
 
 ## Scope
 
