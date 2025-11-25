@@ -133,6 +133,8 @@ class WebSocketJanusTransport extends JanusTransport {
     sink = channel!.sink;
     stream = channel!.stream.asBroadcastStream();
     stream.listen((event) {
+      // print('janus websocket received: $event');
+
       final msg = parse(event);
       final transaction = msg['transaction'];
       if (transaction != null && _pendingTransactions.containsKey(transaction)) {
