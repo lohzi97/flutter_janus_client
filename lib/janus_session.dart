@@ -1,13 +1,5 @@
 part of janus_client;
 
-class SessionReclaimException implements Exception {
-  final String message;
-  const SessionReclaimException(this.message);
-
-  @override
-  String toString() => 'SessionReclaimException: $message';
-}
-
 class JanusSession {
   late JanusTransport? _transport;
   late JanusClient _context;
@@ -22,16 +14,14 @@ class JanusSession {
     _transport = transport;
   }
 
-  Future<Map<String, dynamic>?> create({int? sessionId}) async {
+  Future<Map<String, dynamic>?> create({int? sessionIdToClaim}) async {
     try {
       String transaction = getUuid().v4();
       Map<String, dynamic> request;
 
-      if (sessionId != null) {
-        // Session reclamation - claim existing session
-        request = {"janus": "claim", "session_id": sessionId, "transaction": transaction, ..._context._tokenMap, ..._context._apiMap}..removeWhere((key, value) => value == null);
+      if (sessionIdToClaim != null) {
+        request = {"janus": "claim", "session_id": sessionIdToClaim, "transaction": transaction, ..._context._tokenMap, ..._context._apiMap}..removeWhere((key, value) => value == null);
       } else {
-        // Create new session
         request = {"janus": "create", "transaction": transaction, ..._context._tokenMap, ..._context._apiMap}..removeWhere((key, value) => value == null);
       }
 
@@ -42,13 +32,7 @@ class JanusSession {
         if (response != null) {
           if (response.containsKey('janus') && response.containsKey('data')) {
             _sessionId = response['data']['id'];
-            rest.sessionId = _sessionId;
-          } else if (response.containsKey('janus') && response['janus'] == 'error') {
-            // Handle session claim errors
-            final error = response['error'] ?? {};
-            final errorCode = error['code'] ?? 0;
-            final errorMessage = error['msg'] ?? 'Unknown error occurred during session claim';
-            throw SessionReclaimException('Session claim failed: $errorMessage (Code: $errorCode)');
+            rest.sessionId = sessionId;
           }
         } else {
           throw "Janus Server not live or incorrect url/path specified";
@@ -60,17 +44,15 @@ class JanusSession {
         }
         response=await ws.send(request, handleId: null);
         if (response!.containsKey('janus') && response.containsKey('data')) {
+          // create session response
           _sessionId = response['data']['id'] as int?;
-          ws.sessionId = _sessionId;
-        } else if (response.containsKey('janus') && response['janus'] == 'error') {
-          // Handle session claim errors
-          final error = response['error'] ?? {};
-          final errorCode = error['code'] ?? 0;
-          final errorMessage = error['msg'] ?? 'Unknown error occurred during session claim';
-          throw SessionReclaimException('Session claim failed: $errorMessage (Code: $errorCode)');
+          ws.sessionId = sessionId;
+        } else if (response.containsKey('session_id')) {
+          // claim session response
+          _sessionId = response['session_id'] as int?; 
+          ws.sessionId = sessionId;
         }
       }
-      // Start keep-alive timer for both new sessions and reclaimed sessions
       _startKeepAliveTimer();
       return response;
     } on WebSocketChannelException catch (e) {
