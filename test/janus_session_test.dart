@@ -3,12 +3,10 @@ import 'package:janus_client/janus_client.dart';
 
 void main() {
   group('Session Reclamation Tests via wsTransport', () {
-    late WebSocketJanusTransport wsTransport;
-    late JanusClient wsClient;
 
     test('Create new session and get session ID', () async {
-      wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
-      wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
+      final wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
+      final wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
       JanusSession session = JanusSession(transport: wsTransport, context: wsClient);
       await session.create();
 
@@ -20,8 +18,8 @@ void main() {
     });
 
     test('Session reclamation returns response', () async {
-      wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
-      wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
+      final wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
+      final wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
       // First create a session to get a valid session ID
       JanusSession originalSession = JanusSession(transport: wsTransport, context: wsClient);
       Map<String, dynamic>? originalResponse = await originalSession.create();
@@ -36,7 +34,9 @@ void main() {
       await Future.delayed(Duration(milliseconds: 500));
 
       // Create a new session instance and reclaim the session
-      JanusSession reclaimedSession = JanusSession(transport: wsTransport, context: wsClient);
+      final reclaimWsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
+      final reclaimWsClient = JanusClient(transport: reclaimWsTransport, isUnifiedPlan: true);
+      JanusSession reclaimedSession = JanusSession(transport: reclaimWsTransport, context: reclaimWsClient);
 
       // For WebSocket transport, the create method with sessionIdToClaim should wait for the server response
       // The response should contain the session claim result from the server
@@ -57,8 +57,8 @@ void main() {
     });
 
     test('Session reclamation with invalid session ID throws exception', () async {
-      wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
-      wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
+      final wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
+      final wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
       JanusSession session = JanusSession(transport: wsTransport, context: wsClient);
 
       // Try to reclaim with a non-existent session ID
@@ -78,8 +78,8 @@ void main() {
 
     test('Keep-alive timer restarts after reclamation', () async {
       // Create a session to get a valid session ID
-      wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
-      wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
+      final wsTransport = WebSocketJanusTransport(url: 'ws://10.17.1.31:8188/ws');
+      final wsClient = JanusClient(transport: wsTransport, isUnifiedPlan: true);
       JanusSession originalSession = JanusSession(transport: wsTransport, context: wsClient);
       await originalSession.create();
       int? sessionId = originalSession.sessionId;
