@@ -347,7 +347,7 @@ class JanusStreamStats {
       return formatter(measurement);
     }
     if (_defaultFormatter != null) {
-      return _defaultFormatter!(measurement);
+      return _defaultFormatter(measurement);
     }
     return measurement.format(unit: unit, fractionDigits: fractionDigits, suffix: suffix);
   }
