@@ -251,6 +251,7 @@ class JanusSipPlugin extends JanusPlugin {
       TypedEvent<JanusEvent> typedEvent = TypedEvent<JanusEvent>(event: JanusEvent.fromJson(event.event), jsep: event.jsep);
       var data = typedEvent.event.plugindata?.data;
       if (data == null) return;
+      // print('JanusSipPlugin messages data: ${_printPrettyMap(data)}');
       if (data["sip"] == "event" && data["result"]?['event'] == "registered") {
         typedEvent.event.plugindata?.data = SipRegisteredEvent.fromJson(data);
         _typedMessagesSink?.add(typedEvent);
@@ -289,4 +290,9 @@ class JanusSipPlugin extends JanusPlugin {
       }
     });
   }
+}
+
+String _printPrettyMap(Map<String, dynamic> map) {
+  JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+  return encoder.convert(map);
 }
