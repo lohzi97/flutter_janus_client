@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(openspec:*)",
+      "SlashCommand(/openspec:*)"
+    ],
+    "deny": [],
+    "ask": [
+      "Bash(openspec archive:*)"
+    ]
+  }
+}

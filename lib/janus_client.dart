@@ -216,7 +216,7 @@ class JanusClient {
     }
   }
 
-  Future<JanusSession> createSession() async {
+  Future<JanusSession> createSession({int? sessionId}) async {
     _logger.info("Creating Session");
     _logger.fine("fine message");
     JanusSession session = JanusSession(
@@ -224,7 +224,7 @@ class JanusClient {
         transport: _transport,
         context: this);
     try {
-      await session.create();
+      await session.create(sessionIdToClaim: sessionId);
     } catch (e) {
       _logger.severe(e);
     }

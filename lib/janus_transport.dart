@@ -86,14 +86,18 @@ class WebSocketJanusTransport extends JanusTransport {
   }
 
   /// this method is used to send json payload to Janus Server for communicating the intent.
-  Future<dynamic> send(Map<String, dynamic> data, {int? handleId}) {
+  Future<dynamic> send(Map<String, dynamic> data, {int? optSessionId, int? handleId}) {
     final transaction = data['transaction'];
 
     if (transaction == null) {
       throw Exception("transaction key missing in body");
     }
 
-    data['session_id'] = sessionId;
+    if (optSessionId != null) {
+      data['session_id'] = optSessionId;
+    } else {
+      data['session_id'] = sessionId;
+    }
     if (handleId != null) {
       data['handle_id'] = handleId;
     }
@@ -101,6 +105,7 @@ class WebSocketJanusTransport extends JanusTransport {
     final completer = Completer<dynamic>();
     _pendingTransactions[transaction] = completer;
 
+    // print('data send to server: $data');
     sink!.add(stringify(data));
 
     return completer.future.timeout(this.sendCompleterTimeout, onTimeout: () {
@@ -135,6 +140,8 @@ class WebSocketJanusTransport extends JanusTransport {
     sink = channel!.sink;
     stream = channel!.stream.asBroadcastStream();
     stream.listen((event) {
+      // print('data received from server: $event');
+
       final msg = parse(event);
       final transaction = msg['transaction'];
       if (transaction != null && _pendingTransactions.containsKey(transaction)) {
