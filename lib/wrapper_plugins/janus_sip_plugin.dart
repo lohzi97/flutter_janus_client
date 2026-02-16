@@ -211,6 +211,64 @@ class JanusSipPlugin extends JanusPlugin {
     JanusError.throwErrorFromEvent(response);
   }
 
+  /// Sends a SIP SUBSCRIBE request through Janus.
+  ///
+  /// [event] is mandatory and maps to the SIP `Event` header. Optional
+  /// parameters directly translate to the Janus SIP plugin fields documented at
+  /// https://janus.conf.meetecho.com/docs/sip.html.
+  Future<void> subscribe({
+    required String event,
+    String? callId,
+    String? accept,
+    String? to,
+    int? subscribeTtl,
+    String? content,
+    String? contentType,
+    Map<String, dynamic>? headers,
+  }) async {
+    _requireSipEventName(event, 'subscribe');
+    final payload = {
+      "request": "subscribe",
+      "event": event,
+      "call_id": callId,
+      "accept": accept,
+      "to": to,
+      "subscribe_ttl": subscribeTtl,
+      "content": content,
+      "content_type": contentType,
+      "headers": headers,
+    }..removeWhere((key, value) => value == null);
+    final JanusEvent response = JanusEvent.fromJson(await send(data: payload));
+    JanusError.throwErrorFromEvent(response);
+  }
+
+  /// Sends a SIP UNSUBSCRIBE request (SUBSCRIBE with Expires: 0).
+  Future<void> unsubscribe({
+    required String event,
+    String? callId,
+    String? accept,
+    String? to,
+    int? subscribeTtl,
+    String? content,
+    String? contentType,
+    Map<String, dynamic>? headers,
+  }) async {
+    _requireSipEventName(event, 'unsubscribe');
+    final payload = {
+      "request": "unsubscribe",
+      "event": event,
+      // "call_id": callId,
+      // "accept": accept,
+      "to": to,
+      // "subscribe_ttl": subscribeTtl,
+      // "content": content,
+      // "content_type": contentType,
+      "headers": headers,
+    }..removeWhere((key, value) => value == null);
+    final JanusEvent response = JanusEvent.fromJson(await send(data: payload));
+    JanusError.throwErrorFromEvent(response);
+  }
+
   /// Starts or stops recording of the current SIP session.
   ///
   /// Parameters:
@@ -282,6 +340,21 @@ class JanusSipPlugin extends JanusPlugin {
       } else if (data["sip"] == "event" && data["result"]?['event'] == "transfer") {
         typedEvent.event.plugindata?.data = SipTransferCallEvent.fromJson(data);
         _typedMessagesSink?.add(typedEvent);
+      } else if (data["sip"] == "event" && data["result"]?['event'] == "subscribing") {
+        typedEvent.event.plugindata?.data = SipSubscribingEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
+      } else if (data["sip"] == "event" && data["result"]?['event'] == "subscribe_succeeded") {
+        typedEvent.event.plugindata?.data = SipSubscribeSucceededEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
+      } else if (data["sip"] == "event" && data["result"]?['event'] == "subscribe_failed") {
+        typedEvent.event.plugindata?.data = SipSubscribeFailedEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
+      } else if (data["sip"] == "event" && data["result"]?['event'] == "unsubscribing") {
+        typedEvent.event.plugindata?.data = SipUnsubscribingEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
+      } else if (data["sip"] == "event" && data["result"]?['event'] == "notify") {
+        typedEvent.event.plugindata?.data = SipNotifyEvent.fromJson(data);
+        _typedMessagesSink?.add(typedEvent);
       } else if (data['result']?['code'] != null && data["result"]?['event'] == "hangup" && data['result']?['reason'] != null) {
         typedEvent.event.plugindata?.data = SipHangupEvent.fromJson(data);
         _typedMessagesSink?.add(typedEvent);
@@ -290,9 +363,10 @@ class JanusSipPlugin extends JanusPlugin {
       }
     });
   }
-}
 
-String _printPrettyMap(Map<String, dynamic> map) {
-  JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-  return encoder.convert(map);
+  void _requireSipEventName(String event, String action) {
+    if (event.trim().isEmpty) {
+      throw ArgumentError.value(event, 'event', '$action requires a non-empty event');
+    }
+  }
 }

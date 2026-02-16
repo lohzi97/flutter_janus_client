@@ -710,6 +710,7 @@ class JanusPlugin {
     //filter and only send events for current handleId
     _events.where((event) {
       Map<String, dynamic> result = event;
+      print('_handleEventMessageEmitter: ${_printPrettyMap(result)}');
       if (result.containsKey('sender')) {
         if ((result['sender'] as int?) == handleId) return true;
         return false;
@@ -1388,4 +1389,9 @@ class JanusPlugin {
       throw Exception("You Must Initialize Peer Connection followed by initDataChannel()");
     }
   }
+}
+
+String _printPrettyMap(Map<String, dynamic> map) {
+  JsonEncoder encoder = const JsonEncoder.withIndent('  ');
+  return encoder.convert(map);
 }

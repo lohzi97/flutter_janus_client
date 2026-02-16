@@ -131,6 +131,10 @@ part './interfaces/sip/events/sip_proceeding_event.dart';
 
 part './interfaces/sip/events/sip_calling_event.dart';
 
+part './interfaces/sip/events/sip_subscription_events.dart';
+
+part './interfaces/sip/events/sip_notify_event.dart';
+
 part './widgets/screen_select.dart';
 
 class JanusClient {
