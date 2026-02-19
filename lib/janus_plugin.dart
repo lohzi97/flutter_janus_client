@@ -710,7 +710,7 @@ class JanusPlugin {
     //filter and only send events for current handleId
     _events.where((event) {
       Map<String, dynamic> result = event;
-      print('_handleEventMessageEmitter: ${_printPrettyMap(result)}');
+      // print('_handleEventMessageEmitter: ${_printPrettyMap(result)}');
       if (result.containsKey('sender')) {
         if ((result['sender'] as int?) == handleId) return true;
         return false;
