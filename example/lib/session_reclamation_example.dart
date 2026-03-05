@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:janus_client/janus_client.dart';
-import 'conf.dart';
 
 class SessionReclamationExample extends StatefulWidget {
   @override
@@ -86,7 +85,7 @@ class _SessionReclamationExampleState extends State<SessionReclamationExample> {
 
       // Create new session instance and reclaim
       _session = JanusSession(transport: _transport, context: _janusClient);
-      await _session!.create(sessionId: _storedSessionId);
+      await _session!.create(sessionIdToClaim: _storedSessionId);
 
       setState(() {
         _isConnected = true;
@@ -95,12 +94,6 @@ class _SessionReclamationExampleState extends State<SessionReclamationExample> {
       });
 
       _addLog('Session reclaimed successfully! Original ID: $_storedSessionId, Current ID: ${_session!.sessionId}');
-    } on SessionReclaimException catch (e) {
-      setState(() {
-        _status = 'Session reclamation failed';
-      });
-      _addLog('Session reclaim failed: $e');
-      _addLog('Session may have expired. Try creating a new session.');
     } catch (e) {
       setState(() {
         _status = 'Reclamation error';
@@ -122,10 +115,6 @@ class _SessionReclamationExampleState extends State<SessionReclamationExample> {
       JanusEchoTestPlugin echoPlugin = await _session!.attach<JanusEchoTestPlugin>();
 
       _addLog('EchoTest plugin attached successfully! Handle ID: ${echoPlugin.handleId}');
-
-      // Test a simple echo test call
-      await echoPlugin.startEchoTest();
-      _addLog('Echo test started successfully!');
 
       // Clean up
       await echoPlugin.detach();
@@ -256,34 +245,31 @@ class _SessionReclamationExampleState extends State<SessionReclamationExample> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _reclaimSession,
+                  onPressed: _storedSessionId == null ? null : _reclaimSession,
                   icon: Icon(Icons.refresh),
                   label: Text('Reclaim Session'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                   ),
-                  disabled: _storedSessionId == null,
                 ),
                 ElevatedButton.icon(
-                  onPressed: _simulateDisconnection,
+                  onPressed: !_isConnected ? null : _simulateDisconnection,
                   icon: Icon(Icons.wifi_off),
                   label: Text('Simulate Disconnect'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
                   ),
-                  disabled: !_isConnected,
                 ),
                 ElevatedButton.icon(
-                  onPressed: _testSessionFunctionality,
+                  onPressed: !_isConnected ? null : _testSessionFunctionality,
                   icon: Icon(Icons.check_circle),
                   label: Text('Test Session'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
                   ),
-                  disabled: !_isConnected,
                 ),
                 ElevatedButton.icon(
                   onPressed: _resetAll,

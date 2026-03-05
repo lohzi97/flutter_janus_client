@@ -1,3 +1,7 @@
+## 2.4.2 - 1
+
+- WebSocket transport: `dispose()` is now terminal (suppresses auto-reconnect and heartbeat); apps should recreate the transport/session (or call `connect()` on a fresh transport) for app-level reconnect policies.
+
 ## 2.4.2
 
 - Introduced `JanusStreamStats` with customizable bitrate and network quality helpers (inbound and outbound).

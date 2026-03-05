@@ -79,12 +79,18 @@ class WebSocketJanusTransport extends JanusTransport {
     this.heartbeatInterval = const Duration(seconds: 10),
     this.maxMessageMissedRetries = 3,
     this.maxReconnectAttempts = 5,
-  }) : super(url: url);
+    WebSocketChannel Function(Uri uri, {Iterable<String>? protocols})? channelFactory,
+  })  : _channelFactory =
+            channelFactory ?? ((uri, {protocols}) => WebSocketChannel.connect(uri, protocols: protocols)),
+        super(url: url);
 
   WebSocketChannel? channel;
   WebSocketSink? sink;
   late Stream stream;
   bool isConnected = false;
+
+  final WebSocketChannel Function(Uri uri, {Iterable<String>? protocols}) _channelFactory;
+  bool _disposed = false;
 
   Duration sendCompleterTimeout;
   bool autoReconnect;
@@ -94,23 +100,53 @@ class WebSocketJanusTransport extends JanusTransport {
 
   final Map<String, Completer<dynamic>> _pendingTransactions = {};
   Timer? _heartbeatTimer;
+  Timer? _reconnectTimer;
+  StreamSubscription? _streamSubscription;
   int _reconnectAttempts = 0;
 
   /// Dispose WebSocket connection
+  ///
+  /// Lifecycle guarantee: once `dispose()` is called, this transport enters a
+  /// terminal state and will not reconnect or emit heartbeat traffic.
+  /// Any in-flight and future `send()` calls fail with `StateError('Transport disposed')`.
   @override
   void dispose() {
+    _disposed = true;
+
     _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+
+    final error = StateError('Transport disposed');
+    final pending = _pendingTransactions.values.toList(growable: false);
+    for (final completer in pending) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    }
+    _pendingTransactions.clear();
+
     sink?.close();
+    sink = null;
     channel = null;
     isConnected = false;
+
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
   }
 
   /// Establish WebSocket connection
   void connect() {
+    if (_disposed) return;
+
     try {
-      channel = WebSocketChannel.connect(
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+
+      channel = _channelFactory(
         Uri.parse(url!),
-        protocols: ['janus-protocol'],
+        protocols: const ['janus-protocol'],
       );
 
       sink = channel!.sink;
@@ -122,7 +158,8 @@ class WebSocketJanusTransport extends JanusTransport {
       _startHeartbeat();
 
       // Listen to incoming messages
-      stream.listen(
+      _streamSubscription?.cancel();
+      _streamSubscription = stream.listen(
         (event) {
           final msg = parse(event);
           final transaction = msg['transaction'];
@@ -142,9 +179,11 @@ class WebSocketJanusTransport extends JanusTransport {
 
   /// Heartbeat to keep connection alive
   void _startHeartbeat() {
+    if (_disposed) return;
+
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(heartbeatInterval, (_) {
-      if (isConnected) {
+      if (!_disposed && isConnected && sink != null) {
         final ping = {
           'janus': 'ping',
           'transaction': getUuid().v4(),
@@ -156,17 +195,23 @@ class WebSocketJanusTransport extends JanusTransport {
 
   /// Handle disconnect and auto-reconnect
   void _handleDisconnect() async {
+    if (_disposed) return;
+
     isConnected = false;
     sink = null;
     channel = null;
     _heartbeatTimer?.cancel();
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
 
     if (autoReconnect && _reconnectAttempts < maxReconnectAttempts) {
       _reconnectAttempts++;
       final delay = Duration(seconds: 2 * _reconnectAttempts); // exponential backoff
       print('Reconnecting in ${delay.inSeconds}s...');
-      await Future.delayed(delay);
-      connect();
+      _reconnectTimer = Timer(delay, () {
+        if (_disposed) return;
+        connect();
+      });
     } else if (_reconnectAttempts >= maxReconnectAttempts) {
       print('Max reconnect attempts reached.');
     }
@@ -174,6 +219,9 @@ class WebSocketJanusTransport extends JanusTransport {
 
   /// Send JSON to Janus safely with 3 retries
   Future<dynamic> send(Map<String, dynamic> data, {int? optSessionId, int? handleId}) async {
+    if (_disposed) {
+      throw StateError('Transport disposed');
+    }
     if (!isConnected || sink == null) {
       throw StateError("WebSocket is not connected");
     }

@@ -440,7 +440,7 @@ class _VideoCallV2ExampleState extends State<TypedVideoCallV2Example> {
                 height: 60,
                 decoration: BoxDecoration(
                     color:
-                        ringing ? Colors.green : Colors.grey.withOpacity(0.3)),
+                        ringing ? Colors.green : Colors.grey.withAlpha(77)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
